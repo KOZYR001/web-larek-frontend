@@ -814,7 +814,3 @@ modal:close
 Данные: Нет.
 Действие: Презентер очищает ProductModel.selectedProduct или выполняет другие действия (например, очистка формы).
 
-
-
-UML-схема
-(Схема будет создана в Draw.IO и экспортирована в PNG. Описывает классы и связи: AppState → ProductModel, CartModel, OrderModel; ProductCard, CartView → EventEmitter.)
