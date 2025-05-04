@@ -41,6 +41,7 @@ enum Events {
   PRODUCT_SELECTED = 'product:selected',
   CART_CHANGED = 'cart:changed',
   ORDER_UPDATED = 'order:updated',
+  ORDER_SUBMIT = 'order:submit',
   ORDER_SUBMITTED = 'order:submitted',
   CARD_SELECT = 'card:select',
   ADD_TO_CART = 'addToCart',

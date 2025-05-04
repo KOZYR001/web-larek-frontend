@@ -3,7 +3,7 @@
 Используемый стек
 
 Язык: TypeScript
-Сборка: Vite
+Сборка: Webpack
 API: REST API (https://larek-api.nomoreparties.co)
 Инструменты: Postman (тестирование API), Draw.IO (UML-схемы)
 
@@ -24,14 +24,7 @@ API: REST API (https://larek-api.nomoreparties.co)
 Слой представления: Отображает данные в UI (карточки товаров, корзина, модальные окна).
 Слой презентера: Координирует взаимодействие через события. Код презентера размещён в основном скрипте (index.ts).
 
-События обрабатываются через класс EventEmitter. Пример взаимодействия (добавление товара в корзину):
-
-View: Класс ProductCard реагирует на клик кнопки «Добавить в корзину» и генерирует событие addToCart с ID товара.
-Presenter: В index.ts слушатель события вызывает метод CartModel.addItem, передавая данные товара.
-Model: CartModel добавляет товар в поле cart.items, обновляет cart.total и генерирует событие cart:changed.
-Presenter: Слушатель события cart:changed вызывает метод CartView.render, передавая обновлённые данные cart.
-View: Класс CartView перерисовывает корзину, отображая новый список товаров и сумму.
-
+События обрабатываются через класс EventEmitter.
 Описание данных
 Интерфейсы
 
@@ -108,7 +101,7 @@ post<T>(endpoint: string, data: object): Promise<T> — POST-запрос.
 
 Events
 Описание: Перечисление событий приложения.
-Значения: products:changed, product:selected, cart:changed, order:updated, order:submitted, card:select, addToCart, removeFromCart, openCart, openOrderForm, form:change, form:submit, modal:close, order:success.
+Значения: products:changed, product:selected, cart:changed, order:updated, order:submit, order:submitted, card:select, addToCart, removeFromCart, openCart, openOrderForm, form:change, form:submit, modal:close, order:success.
 Использование: Для обработки событий через EventEmitter.
 
 
@@ -177,7 +170,7 @@ setOrderField(field: keyof IOrder, value: string): void — устанавлив
 validateField(field: keyof IOrder): boolean — проверяет поле (например, пустой адрес).
 getErrors(): { field: string, message: string }[] — возвращает ошибки валидации.
 createOrderToPost(items: string[], total: number): IOrder — создаёт IOrder с items и total из корзины.
-submitOrder(items: string[], total: number): Promise<IOrderResult> — отправляет заказ через api.post, генерирует order:submitted.
+submitOrder(items: string[], total: number): Promise<IOrderResult> — отправляет заказ через api.post, генерирует order:submit, затем order:submitted.
 
 
 
@@ -267,24 +260,25 @@ render(data: IProduct): HTMLElement — отображает данные тов
 
 Класс ProductList
 Назначение: Отображает список карточек товаров на главной странице.
-Зона ответственности: Рендеринг списка товаров, создание карточек через ProductCard.
+Зона ответственности: Рендеринг списка товаров, использование переданного экземпляра ProductCard.
 Конструктор:
-Параметры: element: HTMLElement — корневой элемент списка, cardConstructor: typeof ProductCard — класс для создания карточек.
+Параметры: element: HTMLElement — корневой элемент списка, card: ProductCard — экземпляр карточки.
 
 
 Поля:
 container: HTMLElement — контейнер для карточек.
+card: ProductCard — экземпляр карточки для рендеринга.
 
 
 Методы:
-render(products: IProduct[]): HTMLElement — создаёт экземпляры ProductCard с контекстом catalog, отображает список.
+render(products: IProduct[]): HTMLElement — использует переданный card для отображения списка товаров.
 
 
 
 
 Класс CartView
 Назначение: Отображает корзину.
-Зона ответственности: Рендеринг товаров в корзине, количества, суммы, открытие формы заказа.
+Зона ответственности: Рендеринг товаров в корзине, количества и суммы, открытие формы заказа.
 Конструктор:
 Параметры: element: HTMLElement — корневой элемент корзины, cardConstructor: typeof ProductCard — класс для создания карточек.
 
@@ -296,7 +290,7 @@ button: HTMLButtonElement — кнопка «Оформить заказ».
 
 
 Методы:
-render(cart: ICart): HTMLElement — создаёт экземпляры ProductCard с контекстом cart, отображает список, сумму.
+render(cart: ICart): HTMLElement — создаёт экземпляры ProductCard с контекстом cart, отображает список и сумму (счётчик товаров обновляется через CartIcon).
 События: клик по кнопке «Оформить» — openOrderForm.
 
 
@@ -304,7 +298,7 @@ render(cart: ICart): HTMLElement — создаёт экземпляры Product
 
 Класс CartIcon
 Назначение: Отображает иконку корзины на главной странице.
-Зона ответственности: Обработка клика для открытия корзины.
+Зона ответственности: Обновление счётчика товаров, обработка клика для открытия корзины.
 Конструктор:
 Параметры: element: HTMLElement — корневой элемент иконки.
 
@@ -435,6 +429,13 @@ order:updated
 Действие: Презентер вызывает OrderModel.validateField, затем OrderFormStep1 или OrderFormStep2.setError.
 
 
+order:submit
+Описание: Генерируется перед отправкой заказа.
+Источник: OrderModel.submitOrder.
+Данные: IOrder — данные заказа.
+Действие: Презентер уведомляет о начале отправки.
+
+
 order:submitted
 Описание: Генерируется после отправки заказа.
 Источник: OrderModel.submitOrder.
@@ -506,5 +507,8 @@ order:success
 Источник: SuccessView.
 Данные: Нет.
 Действие: Презентер закрывает модальное окно и очищает корзину через CartModel.clear.
+
+
+
 
 
