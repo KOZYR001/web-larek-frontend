@@ -33,7 +33,7 @@ IProduct
 Поля:
 id: string — уникальный идентификатор.
 title: string — название товара.
-price: number — цена.
+price?: number | null — цена.
 image: string — URL изображения.
 description: string — описание.
 category: string — категория.
@@ -47,7 +47,7 @@ ICartItem
 Поля:
 productId: string — ID товара.
 title: string — название.
-price: number — цена.
+price?: number | null — цена.
 quantity: number — количество.
 
 
@@ -65,8 +65,10 @@ total: number — общая сумма.
 
 
 IOrder
-Описание: Хранит данные заказа.
+Описание: Хранит данные заказа для отправки на сервер.
 Поля:
+items: string[] — список ID товаров.
+total: number — общая сумма.
 address: string — адрес доставки.
 email: string — email.
 phone: string — телефон.
@@ -160,17 +162,17 @@ clear(): void — очищает cart.items и total, генерирует cart:
 
 
 Поля:
-order: IOrder — данные заказа (без items).
+order: Omit<IOrder, 'items' | 'total'>.
 eventEmitter: EventEmitter — для событий.
 api: ApiService — для запросов.
 
 
 Методы:
-setOrderField(field: keyof IOrder, value: string): void — устанавливает поле order, генерирует order:updated.
-validateField(field: keyof IOrder): boolean — проверяет поле (например, пустой адрес).
+setOrderField(field: keyof Omit<IOrder, 'items' | 'total'>, value: string): void — устанавливает поле order, генерирует order:updated.
+validateField(field: keyof Omit<IOrder, 'items' | 'total'>): boolean — проверяет поле (например, пустой адрес).
 getErrors(): { field: string, message: string }[] — возвращает ошибки валидации.
-createOrderToPost(items: string[], total: number): IOrder — создаёт IOrder с items и total из корзины.
-submitOrder(items: string[], total: number): Promise<IOrderResult> — отправляет заказ через api.post, генерирует order:submit, затем order:submitted.
+createOrderToPost(items: string[], total: number): IOrder — создаёт полный IOrder с items и total.
+submitOrder(): Promise<IOrderResult> — отправляет заказ через api.post, генерирует order:submit, затем order:submitted.
 
 
 
@@ -507,6 +509,8 @@ order:success
 Источник: SuccessView.
 Данные: Нет.
 Действие: Презентер закрывает модальное окно и очищает корзину через CartModel.clear.
+
+
 
 
 

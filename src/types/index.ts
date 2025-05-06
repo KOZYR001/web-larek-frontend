@@ -1,7 +1,7 @@
 interface IProduct {
   id: string;
   title: string;
-  price: number;
+  price?: number | null;
   image: string;
   description: string;
   category: string;
@@ -10,7 +10,7 @@ interface IProduct {
 interface ICartItem {
   productId: string;
   title: string;
-  price: number;
+  price?: number | null;
   quantity: number;
 }
 
@@ -20,6 +20,8 @@ interface ICart {
 }
 
 interface IOrder {
+  items: string[];
+  total: number;
   address: string;
   email: string;
   phone: string;
