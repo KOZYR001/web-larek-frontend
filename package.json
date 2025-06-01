@@ -42,6 +42,7 @@
     "lint": "eslint --ext .js,.ts ./src",
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier ./src --write",
+    "dev": "webpack serve --mode development --open",
     "deploy": "gh-pages -d dist"
   }
 }
