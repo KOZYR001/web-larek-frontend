@@ -2,7 +2,7 @@ import { Component } from './Component';
 import { IProduct, ICartItem, IComponent } from '../types';
 
 interface IProductCard extends IComponent {
-  render(data: IProduct): HTMLElement;
+  render(data?: IProduct): HTMLElement;
 }
 
 export class ProductCard extends Component implements IProductCard {
@@ -40,7 +40,7 @@ export class ProductCard extends Component implements IProductCard {
     }
   }
 
-  render(data: IProduct): HTMLElement {
+  render(data?: IProduct): HTMLElement {
     (this._element as any).dataset.id = data.id;
     (this._element as any).dataset.inCart = this.context === 'modal' ? this.isInCart(data.id) : 'false';
     this.title.textContent = data.title;

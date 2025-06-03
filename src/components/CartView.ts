@@ -2,7 +2,7 @@ import { Component } from './Component';
 import { ICart, IComponent } from '../types';
 
 interface ICartView extends IComponent {
-  render(cart: ICart): HTMLElement;
+  render(cart?: ICart): HTMLElement;
 }
 
 export class CartView extends Component implements ICartView {
@@ -18,7 +18,7 @@ export class CartView extends Component implements ICartView {
 
     const basketTemplate = document.querySelector('#basket') as HTMLTemplateElement;
     if (!basketTemplate) throw new Error('Шаблон #basket не найден');
-    const basketElement = basketTemplate.content.cloneNode(true).firstElementChild as HTMLElement;
+    const basketElement = (basketTemplate.content.cloneNode(true) as DocumentFragment).firstElementChild as HTMLElement;
     this.modalContent.appendChild(basketElement);
 
     this.items = this.modalContent.querySelector('.basket__list') as HTMLElement;
@@ -35,12 +35,12 @@ export class CartView extends Component implements ICartView {
     });
   }
 
-  render(cart: ICart): HTMLElement {
+  render(cart?: ICart): HTMLElement {
     this.items.innerHTML = '';
     cart.items.forEach((item, index) => {
       const cardTemplate = document.querySelector('#card-basket') as HTMLTemplateElement;
       if (!cardTemplate) throw new Error('Шаблон #card-basket не найден');
-      const cardElement = cardTemplate.content.cloneNode(true).firstElementChild as HTMLElement;
+      const cardElement = (cardTemplate.content.cloneNode(true) as DocumentFragment).firstElementChild as HTMLElement;
       cardElement.querySelector('.basket__item-index')!.textContent = (index + 1).toString();
       cardElement.querySelector('.card__title')!.textContent = item.title;
       cardElement.querySelector('.card__price')!.textContent = `${item.price} синапсов`;

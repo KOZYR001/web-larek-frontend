@@ -2,7 +2,7 @@ import { Component } from './Component';
 import { IOrderResult, IComponent } from '../types';
 
 interface ISuccessView extends IComponent {
-  render(result: IOrderResult, total: number): HTMLElement;
+  render(result?: IOrderResult, total?: number): HTMLElement;
 }
 
 export class SuccessView extends Component implements ISuccessView {
@@ -18,7 +18,7 @@ export class SuccessView extends Component implements ISuccessView {
 
     const successTemplate = document.querySelector('#success') as HTMLTemplateElement;
     if (!successTemplate) throw new Error('Шаблон #success не найден');
-    const successElement = successTemplate.content.cloneNode(true).firstElementChild as HTMLElement;
+    const successElement = (successTemplate.content.cloneNode(true) as DocumentFragment).firstElementChild as HTMLElement;
     this.modalContent.appendChild(successElement);
 
     this.title = this.modalContent.querySelector('.order-success__title') as HTMLElement;
@@ -35,7 +35,7 @@ export class SuccessView extends Component implements ISuccessView {
     });
   }
 
-  render(result: IOrderResult, total: number): HTMLElement {
+  render(result?: IOrderResult, total?: number): HTMLElement {
     this.description.textContent = `Списано ${total} синапсов`;
     return this._element;
   }

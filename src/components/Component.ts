@@ -11,11 +11,10 @@ export class Component implements IComponent {
     return this._element;
   }
 
-  render(): HTMLElement {
-    return this._element;
-  }
-
-  render<T>(data: T): HTMLElement {
+  render(): HTMLElement;
+  render<T>(data: T): HTMLElement;
+  // Единая реализация
+  render<T>(data?: T): HTMLElement {
     return this._element;
   }
 }

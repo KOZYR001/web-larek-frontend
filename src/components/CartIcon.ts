@@ -2,7 +2,7 @@ import { Component } from './Component';
 import { IComponent } from '../types';
 
 interface ICartIcon extends IComponent {
-  render(count: number): HTMLElement;
+  render(count?: number): HTMLElement;
 }
 
 export class CartIcon extends Component implements ICartIcon {
@@ -22,7 +22,7 @@ export class CartIcon extends Component implements ICartIcon {
     });
   }
 
-  render(count: number): HTMLElement {
+  render(count?: number): HTMLElement {
     this.counter.textContent = count.toString();
     return this._element;
   }

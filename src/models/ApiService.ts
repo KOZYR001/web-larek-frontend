@@ -1,3 +1,4 @@
+import { IProduct } from '../types';
 import { IApiService } from '../types';
 import { API_URL } from '../utils/constants';
 
