@@ -1,518 +1,144 @@
-Проект: Веб-ларёк
-Интернет-магазин с каталогом товаров, корзиной и оформлением заказа.
-Используемый стек
+# веб-ларёк
 
-Язык: TypeScript
-Сборка: Webpack
-API: REST API (https://larek-api.nomoreparties.co)
-Инструменты: Postman (тестирование API), Draw.IO (UML-схемы)
+Интернет-магазин с товарами для веб-разработчиков. Пользователи могут просматривать каталог, добавлять товары в корзину и оформлять заказы.
 
-Инструкция по сборке и запуску
+## Описание
+Проект построен на основе принципа MVP (Model-View-Presenter), обеспечивающего разделение ответственности между классами:
 
-Клонируйте репозиторий: git clone [ссылка]
-Установите зависимости: npm install
-Создайте файл .env в корне проекта:API_ORIGIN=https://larek-api.nomoreparties.co
+Model: Отвечает за загрузку данных через API, хранение и обработку пользовательских данных.
+View: Отображает интерфейс и фиксирует действия пользователя, сообщая о событиях.
+Presenter: Класс EventEmitter выступает в роли посредника, связывая модели и интерфейсы через события.
 
+### Стек технологий:
+    HTML, SCSS, TypeScript, Webpack
 
-Запустите проект: npm run dev
-Импортируйте коллекцию Postman: weblarek.postman.json
+### Структура проекта:
+- src/ — исходные файлы проекта
+- src/components/ — папка с JS компонентами
+- src/components/base/ — папка с базовым кодом
 
-Архитектурный подход
-Приложение использует парадигму MVP (Model-View-Presenter) с событийно-ориентированным подходом. Слои:
+### Важные файлы:
+- src/pages/index.html — HTML-файл главной страницы
+- src/types/index.ts — файл с типами
+- src/index.ts — точка входа приложения
+- src/styles/styles.scss — корневой файл стилей
+- src/utils/constants.ts — файл с константами
+- src/utils/utils.ts — файл с утилитами
 
-Слой модели: Хранит и обрабатывает данные (товары, корзина, заказ).
-Слой представления: Отображает данные в UI (карточки товаров, корзина, модальные окна).
-Слой презентера: Координирует взаимодействие через события. Код презентера размещён в основном скрипте (index.ts).
+## Описание базовых классов
 
-События обрабатываются через класс EventEmitter.
-Описание данных
-Интерфейсы
-
-IProduct
-Описание: Хранит данные о товаре, получаемые с сервера.
-Поля:
-id: string — уникальный идентификатор.
-title: string — название товара.
-price?: number | null — цена.
-image: string — URL изображения.
-description: string — описание.
-category: string — категория.
-
-
-Использование: Для отображения карточек товаров и деталей в модальном окне.
-
-
-ICartItem
-Описание: Хранит данные о товаре в корзине.
-Поля:
-productId: string — ID товара.
-title: string — название.
-price?: number | null — цена.
-quantity: number — количество.
-
-
-Использование: Для отображения товаров в корзине.
-
-
-ICart
-Описание: Хранит корзину.
-Поля:
-items: ICartItem[] — список товаров.
-total: number — общая сумма.
-
-
-Использование: Для управления и отображения корзины.
-
-
-IOrder
-Описание: Хранит данные заказа для отправки на сервер.
-Поля:
-items: string[] — список ID товаров.
-total: number — общая сумма.
-address: string — адрес доставки.
-email: string — email.
-phone: string — телефон.
-payment: 'card' | 'cash' — способ оплаты.
-
-
-Использование: Для оформления заказа.
-
-
-IOrderResult
-Описание: Ответ сервера после отправки заказа.
-Поля:
-orderId: string — ID заказа.
-success: boolean — статус.
-
-
-Использование: Для отображения подтверждения заказа.
-
-
-
-Дополнительные типы
-
-IApiService
-Описание: Интерфейс для API-клиента.
-Методы:
-get<T>(endpoint: string): Promise<T> — GET-запрос.
-post<T>(endpoint: string, data: object): Promise<T> — POST-запрос.
-
-
-Использование: Для взаимодействия с сервером.
-
-
-Events
-Описание: Перечисление событий приложения.
-Значения: products:changed, product:selected, cart:changed, order:updated, order:submit, order:submitted, card:select, addToCart, removeFromCart, openCart, openOrderForm, form:change, form:submit, modal:close, order:success.
-Использование: Для обработки событий через EventEmitter.
-
-
-
-Слой модели
-
-Класс ProductModel
-Назначение: Хранит и обрабатывает данные о товарах.
-Зона ответственности: Загрузка товаров, выбор товара, фильтрация.
-Конструктор:
-Параметры: eventEmitter: EventEmitter, api: ApiService.
-
-
-Поля:
-products: IProduct[] — список товаров.
-selectedProduct: IProduct | null — выбранный товар.
-eventEmitter: EventEmitter — для событий.
-api: ApiService — для запросов к серверу.
-
+### Класс `Api` имеет следующие свойства и методы.
 
 Методы:
-fetchProducts(): Promise<void> — загружает товары через api.get, сохраняет в products, генерирует products:changed.
-setSelectedProduct(product: IProduct | null): void — устанавливает selectedProduct, генерирует product:selected.
-filterProducts(category?: string, maxPrice?: number): IProduct[] — возвращает отфильтрованный список.
+- `handleResponse(response: Response): Promise<object>` - обработчик ответа сервера.
+- `get(uri: string)` - принимает изменяющеюся часть url-адреса, возвращает ответ от сервера.
+- `post(uri: string, data: object, method: ApiPostMethods = 'POST')` - принимает изменяющеюся часть url-адреса, принимает данные в виде объекта для отправки на сервер, type ApiPostMethods = 'POST' | 'PUT' | 'DELETE'.
 
+### Класс `EventEmitter` - брокер событий, implements от IEvents и имеет следующие методы.
 
-
-
-Класс CartModel
-Назначение: Управляет корзиной.
-Зона ответственности: Добавление, удаление, обновление товаров, подсчёт суммы.
-Конструктор:
-Параметры: eventEmitter: EventEmitter.
-
-
-Поля:
-cart: ICart — корзина (items, total).
-eventEmitter: EventEmitter — для событий.
-
+Класс EventEmitter реализует паттерн «Observer/Наблюдатель» и обеспечивает работу событий, его методы позволяют устанавливать и снимать слушатели событий, вызвать слушатели при возникновении события.
 
 Методы:
-addItem(product: IProduct): void — добавляет товар, обновляет total, генерирует cart:changed.
-removeItem(productId: string): void — удаляет товар, обновляет total, генерирует cart:changed.
-updateQuantity(productId: string, quantity: number): void — обновляет количество, пересчитывает total, генерирует cart:changed.
-getTotal(): number — возвращает cart.total.
-clear(): void — очищает cart.items и total, генерирует cart:changed.
+- `on` - для подписки на событие.
+- `off` - для отписки от события.
+- `emit` - уведомления подписчиков о наступлении события соответственно.
+- `onAll` - для подписки на все события.
+- `offAll` - сброса всех подписчиков.
+- `trigger` - генерирует заданное событие с заданными аргументами. Это позволяет передавать его в качестве обработчика события в другие классы. Эти классы будут генерировать события, не будучи при этом напрямую зависимыми от класса `EventEmitter`.
 
+## Описание классов Model, которые позволяют хранить и обрабатывать данные с сервера и от пользователей.
 
-
-
-Класс OrderModel
-Назначение: Формирует и отправляет заказ.
-Зона ответственности: Хранение данных формы, валидация, отправка заказа.
-Конструктор:
-Параметры: eventEmitter: EventEmitter, api: ApiService.
-
-
-Поля:
-order: Omit<IOrder, 'items' | 'total'>.
-eventEmitter: EventEmitter — для событий.
-api: ApiService — для запросов.
-
+### Класс `ApiModel` наследуется от класса `Api`, передаёт и получает данные от сервера.
 
 Методы:
-setOrderField(field: keyof Omit<IOrder, 'items' | 'total'>, value: string): void — устанавливает поле order, генерирует order:updated.
-validateField(field: keyof Omit<IOrder, 'items' | 'total'>): boolean — проверяет поле (например, пустой адрес).
-getErrors(): { field: string, message: string }[] — возвращает ошибки валидации.
-createOrderToPost(items: string[], total: number): IOrder — создаёт полный IOrder с items и total.
-submitOrder(): Promise<IOrderResult> — отправляет заказ через api.post, генерирует order:submit, затем order:submitted.
+- `getListProductCard` - получаем массив объектов(карточек) с сервера.
+- `postOrderLot` - получаем ответ от сервера по сделанному/отправленному заказу.
 
-
-
-
-Класс AppState
-Назначение: Объединяет модели.
-Зона ответственности: Координация моделей.
-Конструктор:
-Параметры: eventEmitter: EventEmitter.
-
-
-Поля:
-products: ProductModel — модель товаров.
-cart: CartModel — модель корзины.
-order: OrderModel — модель заказа.
-
-
-Методы: Не имеет собственных методов, предоставляет доступ к моделям.
-
-
-Класс ApiService
-Назначение: Выполняет HTTP-запросы.
-Зона ответственности: Взаимодействие с API.
-Конструктор:
-Параметры: baseUrl: string — адрес сервера.
-
-
-Поля:
-baseUrl: string — базовый URL API.
-
+### Класс `BasketModel` хранит и работает с данными полученными от пользователя.
 
 Методы:
-get<T>(endpoint: string): Promise<T> — GET-запрос.
-post<T>(endpoint: string, data: object): Promise<T> — POST-запрос.
+- `getCounter` - возвращает количество товаров в корзине.
+- `getSumAllProducts` - считает и возвращает сумму синапсов всех товаров в корзине.
+- `setSelectedСard` - добавляет товар в корзину.
+- `deleteCardToBasket` - удаляет товар из корзины.
+- `clearBasketProducts` - очищает/удаляет все товары из корзины.
 
+### Класс `DataModel` принимает и хранит данные продуктов полученные с сервера.
 
+Метод:
+- `setPreview` - получает данные карточки которую открыл пользователь.
 
-
-
-Слой представления
-
-Класс Component (базовый)
-Назначение: Базовый класс для компонентов.
-Зона ответственности: Управление DOM и рендеринг.
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент.
-
-
-Поля:
-element: HTMLElement — корневой DOM-элемент.
-
+### Класс `FormModel` хранит данные полученные от пользователя.
 
 Методы:
-setText(element: HTMLElement, value: string): void — устанавливает текст.
-setDisabled(element: HTMLElement, state: boolean): void — управляет состоянием.
-render(data?: object): HTMLElement — возвращает элемент.
+- `setOrderAddress` - принимаем/сохраняет адрес пользователя.
+- `validateOrder` - проверяет адрес пользователя / и способ оплаты.
+- `setOrderData` - принимаем/сохраняет номер телефона/почту пользователя.
+- `validateContacts` - проверяет номер телефона/почту пользователя.
+- `getOrderLot` - возвращает объект данных пользователя с выбранными товарами.
 
+## Классы View позволяют отображать элементы страницы с полученными данными, позволяют взаимодействовать с пользователем.
 
-
-
-Класс ProductCard
-Назначение: Отображает карточку товара на главной странице, в корзине или в модальном окне.
-Зона ответственности: Рендеринг данных товара, обработка кликов в зависимости от контекста.
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент карточки, context: 'catalog' | 'cart' | 'modal' — контекст отображения.
-
-
-Поля:
-title: HTMLElement — элемент для названия.
-price: HTMLElement — элемент для цены.
-image: HTMLImageElement — элемент для изображения.
-description: HTMLElement — элемент для описания (только в модальном окне).
-button: HTMLButtonElement — кнопка («Купить» в каталоге/модальном окне, «Убрать» в корзине).
-
+### Класс `Basket` управляет отображением корзины.
 
 Методы:
-render(data: IProduct): HTMLElement — отображает данные товара, изменяет текст кнопки и события в зависимости от context.
-События:
-В catalog: клик по карточке — card:select, клик по кнопке — addToCart.
-В cart: клик по кнопке — removeFromCart.
-В modal: клик по кнопке — addToCart или removeFromCart (если товар в корзине).
+- `renderHeaderBasketCounter` - сохраняет и устанавливает какое количество товаров находится в корзине.
+- `renderSumAllProducts` - сохраняет и устанавливает сумму синапсов всех товаров в корзине.
 
+### Класс `BasketItem` управляет отображением элементов(продуктов) в корзине.
 
+метод:
+- `setPrice` - принимает цену продукта в числовом значении и возвращает в строчном.
 
-
-
-
-Класс ProductList
-Назначение: Отображает список карточек товаров на главной странице.
-Зона ответственности: Рендеринг списка товаров, использование переданного экземпляра ProductCard.
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент списка, card: ProductCard — экземпляр карточки.
-
-
-Поля:
-container: HTMLElement — контейнер для карточек.
-card: ProductCard — экземпляр карточки для рендеринга.
-
+### Класс `Card` управляет отображением карточки товара на веб странице.
 
 Методы:
-render(products: IProduct[]): HTMLElement — использует переданный card для отображения списка товаров.
+- `setText` - принимает два значения, первое HTMLElement, второе значение задаёт текстовое содержимое HTMLElement.
+- `cardCategory` - принимает строчное значение и создаёт новый className для HTMLElement.
+- `setPrice` - принимает цену продукта в числовом значении и возвращает в строчном.
 
+### Класс `CardPreview` наследуется от класса `Card` и управляет отображением подробного описания карточки товара в превью, позволяет добавить карточку в корзину.
 
+Метод:
+- `notSale` - принимает данные о продукте, проверяет наличие цены продукта, при отсутствии цены ограничивает покупку.
 
+### Класс `Order` управляет отображением содержимого модального окна и позволяет принять от пользователя метод оплаты и адрес.
 
-Класс CartView
-Назначение: Отображает корзину.
-Зона ответственности: Рендеринг товаров в корзине, количества и суммы, открытие формы заказа.
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент корзины, cardConstructor: typeof ProductCard — класс для создания карточек.
+Метод:
+- `paymentSelection` - устанавливаем обводку вокруг выбранного метода оплаты.
 
+### Класс `Contacts` управляет отображением содержимого модального окна и позволяет принять от пользователя номер телефона и Email.
 
-Поля:
-items: HTMLElement — контейнер для списка товаров.
-total: HTMLElement — элемент для суммы.
-button: HTMLButtonElement — кнопка «Оформить заказ».
-
-
-Методы:
-render(cart: ICart): HTMLElement — создаёт экземпляры ProductCard с контекстом cart, отображает список и сумму (счётчик товаров обновляется через CartIcon).
-События: клик по кнопке «Оформить» — openOrderForm.
-
-
-
-
-Класс CartIcon
-Назначение: Отображает иконку корзины на главной странице.
-Зона ответственности: Обновление счётчика товаров, обработка клика для открытия корзины.
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент иконки.
-
-
-Поля:
-icon: HTMLElement — элемент иконки.
-
+### Класс `Modal` управляет отображением модальных окон.
 
 Методы:
-render(count: number): HTMLElement — обновляет счётчик товаров.
-События: клик по иконке — openCart.
+- open - отображает модальное окон.
+- close - закрывает модальное окно.
 
+### Класс `Success` управляет отображением удачного заказа в модальном окне.
 
+## Установка и запуск
+Для установки и запуска проекта необходимо выполнить команды
 
+```
+npm install
+npm run start
+```
 
-Класс Modal
-Назначение: Отображает модальное окно с любым контентом.
-Зона ответственности: Управление модальным окном (открытие/закрытие, рендеринг контента).
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент модалки.
+или
 
+```
+yarn
+yarn start
+```
+## Сборка
 
-Поля:
-content: HTMLElement — контейнер для контента.
-closeButton: HTMLButtonElement — кнопка закрытия.
+```
+npm run build
+```
 
+или
 
-Методы:
-open(content: HTMLElement): void — открывает окно, устанавливает контент.
-close(): void — закрывает окно.
-События: клик по кнопке закрытия или вне окна — modal:close.
-
-
-
-
-Класс OrderFormStep1
-Назначение: Отображает первый шаг формы заказа (оплата, адрес).
-Зона ответственности: Ввод данных, отображение ошибок.
-Конструктор:
-Параметры: element: HTMLFormElement — корневая форма.
-
-
-Поля:
-payment: HTMLInputElement[] — радиокнопки для способа оплаты.
-address: HTMLInputElement — поле для адреса.
-submitButton: HTMLButtonElement — кнопка «Далее».
-
-
-Методы:
-setField(name: string, value: string): void — устанавливает значение поля.
-setError(field: string, message: string): void — отображает ошибку.
-События: изменение поля — form:change, отправка формы — form:submit.
-
-
-
-
-Класс OrderFormStep2
-Назначение: Отображает второй шаг формы заказа (email, телефон).
-Зона ответственности: Ввод данных, отображение ошибок.
-Конструктор:
-Параметры: element: HTMLFormElement — корневая форма.
-
-
-Поля:
-email: HTMLInputElement — поле для email.
-phone: HTMLInputElement — поле для телефона.
-submitButton: HTMLButtonElement — кнопка «Оплатить».
-
-
-Методы:
-setField(name: string, value: string): void — устанавливает значение поля.
-setError(field: string, message: string): void — отображает ошибку.
-События: изменение поля — form:change, отправка формы — form:submit.
-
-
-
-
-Класс SuccessView
-Назначение: Отображает окно успешного заказа.
-Зона ответственности: Показ подтверждения заказа.
-Конструктор:
-Параметры: element: HTMLElement — корневой элемент.
-
-
-Поля:
-orderId: HTMLElement — элемент для номера заказа.
-total: HTMLElement — элемент для суммы.
-button: HTMLButtonElement — кнопка «Закрыть».
-
-
-Методы:
-render(result: IOrderResult, total: number): HTMLElement — отображает номер заказа и сумму.
-События: клик по кнопке — modal:close.
-
-
-
-
-
-Описание событий
-События обрабатываются через EventEmitter и делятся на две категории: связанные с изменением данных и генерируемые действиями пользователя.
-События, связанные с изменением данных
-
-products:changed
-Описание: Генерируется при изменении списка товаров.
-Источник: ProductModel.fetchProducts.
-Данные: IProduct[] — обновлённый список.
-Действие: Презентер вызывает ProductList.render.
-
-
-product:selected
-Описание: Генерируется при выборе товара.
-Источник: ProductModel.setSelectedProduct.
-Данные: IProduct | null — выбранный товар.
-Действие: Презентер открывает модальное окно через Modal.open с ProductCard (контекст modal).
-
-
-cart:changed
-Описание: Генерируется при изменении корзины.
-Источник: CartModel.addItem, removeItem, updateQuantity, clear.
-Данные: ICart — обновлённая корзина.
-Действие: Презентер вызывает CartView.render и CartIcon.render.
-
-
-order:updated
-Описание: Генерируется при изменении данных заказа.
-Источник: OrderModel.setOrderField.
-Данные: { field: string, value: string } — изменённое поле.
-Действие: Презентер вызывает OrderModel.validateField, затем OrderFormStep1 или OrderFormStep2.setError.
-
-
-order:submit
-Описание: Генерируется перед отправкой заказа.
-Источник: OrderModel.submitOrder.
-Данные: IOrder — данные заказа.
-Действие: Презентер уведомляет о начале отправки.
-
-
-order:submitted
-Описание: Генерируется после отправки заказа.
-Источник: OrderModel.submitOrder.
-Данные: IOrderResult — результат заказа.
-Действие: Презентер открывает SuccessView через Modal.open.
-
-
-
-События, генерируемые действиями пользователя
-
-card:select
-Описание: Пользователь кликает по карточке товара на главной странице.
-Источник: ProductCard (контекст catalog).
-Данные: string — ID товара.
-Действие: Презентер вызывает ProductModel.setSelectedProduct.
-
-
-addToCart
-Описание: Пользователь нажимает «Купить».
-Источник: ProductCard (контекст catalog или modal).
-Данные: string — ID товара.
-Действие: Презентер вызывает CartModel.addItem.
-
-
-removeFromCart
-Описание: Пользователь удаляет товар из корзины.
-Источник: ProductCard (контекст cart или modal).
-Данные: string — ID товара.
-Действие: Презентер вызывает CartModel.removeItem.
-
-
-openCart
-Описание: Пользователь кликает по иконке корзины.
-Источник: CartIcon.
-Данные: Нет.
-Действие: Презентер открывает корзину через CartView.render.
-
-
-openOrderForm
-Описание: Пользователь нажимает «Оформить заказ».
-Источник: CartView.
-Данные: Нет.
-Действие: Презентер открывает OrderFormStep1 через Modal.open.
-
-
-form:change
-Описание: Пользователь изменяет поле формы.
-Источник: OrderFormStep1, OrderFormStep2.
-Данные: { field: string, value: string } — имя поля и значение.
-Действие: Презентер вызывает OrderModel.setOrderField.
-
-
-form:submit
-Описание: Пользователь отправляет форму.
-Источник: OrderFormStep1, OrderFormStep2.
-Данные: Нет.
-Действие: Для OrderFormStep1 презентер открывает OrderFormStep2. Для OrderFormStep2 презентер вызывает OrderModel.submitOrder.
-
-
-modal:close
-Описание: Пользователь закрывает модальное окно.
-Источник: Modal.
-Данные: Нет.
-Действие: Презентер очищает ProductModel.selectedProduct или форму.
-
-
-order:success
-Описание: Пользователь закрывает окно успешного заказа.
-Источник: SuccessView.
-Данные: Нет.
-Действие: Презентер закрывает модальное окно и очищает корзину через CartModel.clear.
-
-
-
-
-
-
-
+```
+yarn build
+```
