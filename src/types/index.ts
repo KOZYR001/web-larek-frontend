@@ -1,67 +1,42 @@
-interface IProduct {
+export interface IProductItem {
   id: string;
-  title: string;
-  price?: number | null;
-  image: string;
   description: string;
-  category: string;
-}
-
-interface ICartItem {
-  productId: string;
+  image: string;
   title: string;
-  price?: number | null;
-  quantity: number;
+  category: string;
+  price: number | null;
 }
 
-interface ICart {
-  items: ICartItem[];
-  total: number;
+export interface IActions {
+  onClick: (event: MouseEvent) => void;
 }
 
-interface IOrder {
+// интерфейс формы заказа
+export interface IOrderForm {
+payment?: string;
+address?: string;
+phone?: string;
+email?: string;
+total?: string | number;
+}
+
+export interface IOrder extends IOrderForm {
   items: string[];
-  total: number;
-  address: string;
+}
+
+export interface IOrderLot{
+  payment: string;
   email: string;
   phone: string;
-  payment: 'card' | 'cash';
+  address: string;
+  total: number;
+  items: string[];
 }
 
-interface IOrderResult {
-  orderId: string;
-  success: boolean;
+export interface IOrderResult {
+  id: string;
+  total: number;
 }
 
-interface IApiService {
-  get<T>(endpoint: string): Promise<T>;
-  post<T>(endpoint: string, data: object): Promise<T>;
-}
-
-enum Events {
-  PRODUCTS_CHANGED = 'products:changed',
-  PRODUCT_SELECTED = 'product:selected',
-  CART_CHANGED = 'cart:changed',
-  ORDER_UPDATED = 'order:updated',
-  ORDER_SUBMIT = 'order:submit',
-  ORDER_SUBMITTED = 'order:submitted',
-  CARD_SELECT = 'card:select',
-  ADD_TO_CART = 'addToCart',
-  REMOVE_FROM_CART = 'removeFromCart',
-  OPEN_CART = 'openCart',
-  OPEN_ORDER_FORM = 'openOrderForm',
-  FORM_CHANGE = 'form:change',
-  FORM_SUBMIT = 'form:submit',
-  MODAL_CLOSE = 'modal:close',
-  ORDER_SUCCESS = 'order:success',
-}
-
-export {
-  IProduct,
-  ICartItem,
-  ICart,
-  IOrder,
-  IOrderResult,
-  IApiService,
-  Events,
-};
+// тип ошибки формы
+export type FormErrors = Partial<Record<keyof IOrder, string>>;
