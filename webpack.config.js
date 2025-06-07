@@ -52,6 +52,7 @@ const config = {
         use: [stylesHandler, "css-loader", "postcss-loader", "resolve-url-loader", {
           loader: "sass-loader",
           options: {
+            implementation: require("sass"),
             sourceMap: true,
             sassOptions: {
               includePaths: ["src/scss"]
