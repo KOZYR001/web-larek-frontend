@@ -1,3 +1,4 @@
+
 import './scss/styles.scss';
 
 import { CDN_URL, API_URL } from './utils/constants';
@@ -16,6 +17,8 @@ import { FormModel } from './components/Model/FormModel';
 import { Order } from './components/View/FormOrder';
 import { Contacts } from './components/View/FormContacts';
 import { Success } from './components/View/Success';
+import { HeaderView } from './components/View/HeaderView';
+import { MainPage } from './components/View/MainPage';
 
 const cardCatalogTemplate = document.querySelector('#card-catalog') as HTMLTemplateElement;
 const cardPreviewTemplate = document.querySelector('#card-preview') as HTMLTemplateElement;
@@ -29,18 +32,17 @@ const apiModel = new ApiModel(CDN_URL, API_URL);
 const events = new EventEmitter();
 const dataModel = new DataModel(events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
-const basket = new Basket(basketTemplate, events);
+const basket = new Basket(basketTemplate, events, cardBasketTemplate); // Передача cardBasketTemplate
 const basketModel = new BasketModel();
 const formModel = new FormModel(events);
 const order = new Order(orderTemplate, events);
 const contacts = new Contacts(contactsTemplate, events);
+const headerView = new HeaderView(events);
+const mainPage = new MainPage(cardCatalogTemplate, events);
 
-/********** Отображения карточек товара на странице **********/
+/********** Отображение карточек товара на странице **********/
 events.on('productCards:receive', () => {
-  dataModel.productCards.forEach(item => {
-    const card = new Card(cardCatalogTemplate, events, { onClick: () => events.emit('card:select', item) });
-    ensureElement<HTMLElement>('.gallery').append(card.render(item));
-  });
+  mainPage.render(dataModel.productCards);
 });
 
 /********** Получить объект данных "IProductItem" карточки по которой кликнули **********/
@@ -55,20 +57,15 @@ events.on('modalCard:open', (item: IProductItem) => {
 
 /********** Добавление карточки товара в корзину **********/
 events.on('card:addBasket', () => {
-  basketModel.setSelectedСard(dataModel.selectedСard); // добавить карточку товара в корзину
-  basket.renderHeaderBasketCounter(basketModel.getCounter()); // отобразить количество товара на иконке корзины
+  basketModel.setSelectedСard(dataModel.selectedСard);
+  headerView.renderBasketCounter(basketModel.getCounter());
   modal.close();
 });
 
 /********** Открытие модального окна корзины **********/
 events.on('basket:open', () => {
-  basket.renderSumAllProducts(basketModel.getSumAllProducts());  // отобразить сумма всех продуктов в корзине
-  let i = 0;
-  basket.items = basketModel.basketProducts.map((item) => {
-    const basketItem = new BasketItem(cardBasketTemplate, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
-    i = i + 1;
-    return basketItem.render(item, i);
-  })
+  basket.renderSumAllProducts(basketModel.getSumAllProducts());
+  basket.renderBasketItems(basketModel.basketProducts);
   modal.content = basket.render();
   modal.render();
 });
@@ -76,21 +73,15 @@ events.on('basket:open', () => {
 /********** Удаление карточки товара из корзины **********/
 events.on('basket:basketItemRemove', (item: IProductItem) => {
   basketModel.deleteCardToBasket(item);
-  basket.renderHeaderBasketCounter(basketModel.getCounter()); // отобразить количество товара на иконке корзины
-  basket.renderSumAllProducts(basketModel.getSumAllProducts()); // отобразить сумма всех продуктов в корзине
-  let i = 0;
-  basket.items = basketModel.basketProducts.map((item) => {
-    const basketItem = new BasketItem(cardBasketTemplate, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
-    i = i + 1;
-    return basketItem.render(item, i);
-  })
+  headerView.renderBasketCounter(basketModel.getCounter());
+  basket.renderSumAllProducts(basketModel.getSumAllProducts());
+  basket.renderBasketItems(basketModel.basketProducts);
 });
 
 /********** Открытие модального окна "способа оплаты" и "адреса доставки" **********/
 events.on('order:open', () => {
   modal.content = order.render();
   modal.render();
-  formModel.items = basketModel.basketProducts.map(item => item.id); // передаём список id товаров которые покупаем
 });
 
 events.on('order:paymentSelection', (button: HTMLButtonElement) => {
@@ -107,17 +98,16 @@ events.on('formErrors:address', (errors: Partial<IOrderForm>) => {
   const { address, payment } = errors;
   order.valid = !address && !payment;
   order.formErrors.textContent = Object.values({address, payment}).filter(i => !!i).join('; ');
-})
+});
 
 /********** Открытие модального окна "Email" и "Телефон" **********/
 events.on('contacts:open', () => {
-  formModel.total = basketModel.getSumAllProducts();
   modal.content = contacts.render();
   modal.render();
 });
 
 /********** Отслеживаем изменение в полях вода "Email" и "Телефон" **********/
-events.on(`contacts:changeInput`, (data: { field: string, value: string }) => {
+events.on('contacts:changeInput', (data: { field: string, value: string }) => {
   formModel.setOrderData(data.field, data.value);
 });
 
@@ -126,17 +116,20 @@ events.on('formErrors:change', (errors: Partial<IOrderForm>) => {
   const { email, phone } = errors;
   contacts.valid = !email && !phone;
   contacts.formErrors.textContent = Object.values({phone, email}).filter(i => !!i).join('; ');
-})
+});
 
 /********** Открытие модального окна "Заказ оформлен" **********/
 events.on('success:open', () => {
-  apiModel.postOrderLot(formModel.getOrderLot())
+  apiModel.postOrderLot(formModel.getOrderLot(
+    basketModel.basketProducts.map(item => item.id),
+    basketModel.getSumAllProducts()
+  ))
     .then((data) => {
-      console.log(data); // ответ сервера
+      console.log(data);
       const success = new Success(successTemplate, events);
       modal.content = success.render(basketModel.getSumAllProducts());
-      basketModel.clearBasketProducts(); // очищаем корзину
-      basket.renderHeaderBasketCounter(basketModel.getCounter()); // отобразить количество товара на иконке корзины
+      basketModel.clearBasketProducts();
+      headerView.renderBasketCounter(basketModel.getCounter());
       modal.render();
     })
     .catch(error => console.log(error));
@@ -159,5 +152,4 @@ apiModel.getListProductCard()
   .then(function (data: IProductItem[]) {
     dataModel.productCards = data;
   })
-  // .then(dataModel.setProductCards.bind(dataModel))
-  .catch(error => console.log(error))
+  .catch(error => console.log(error));

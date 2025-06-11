@@ -1,5 +1,8 @@
+
 import { createElement } from "../../utils/utils";
 import { IEvents } from "../base/events";
+import { IProductItem } from "../../types";
+import { BasketItem } from "./BasketItem";
 
 export interface IBasket {
   basket: HTMLElement;
@@ -7,11 +10,9 @@ export interface IBasket {
   basketList: HTMLElement;
   button: HTMLButtonElement;
   basketPrice: HTMLElement;
-  headerBasketButton: HTMLButtonElement;
-  headerBasketCounter: HTMLElement;
-  renderHeaderBasketCounter(value: number): void;
   renderSumAllProducts(sumAll: number): void;
   render(): HTMLElement;
+  renderBasketItems(items: IProductItem[]): void;
 }
 
 export class Basket implements IBasket {
@@ -20,21 +21,15 @@ export class Basket implements IBasket {
   basketList: HTMLElement;
   button: HTMLButtonElement;
   basketPrice: HTMLElement;
-  headerBasketButton: HTMLButtonElement;
-  headerBasketCounter: HTMLElement;
-  
-  constructor(template: HTMLTemplateElement, protected events: IEvents) {
+
+  constructor(template: HTMLTemplateElement, protected events: IEvents, protected cardBasketTemplate: HTMLTemplateElement) {
     this.basket = template.content.querySelector('.basket').cloneNode(true) as HTMLElement;
     this.title = this.basket.querySelector('.modal__title');
     this.basketList = this.basket.querySelector('.basket__list');
     this.button = this.basket.querySelector('.basket__button');
     this.basketPrice = this.basket.querySelector('.basket__price');
-    this.headerBasketButton = document.querySelector('.header__basket');
-    this.headerBasketCounter = document.querySelector('.header__basket-counter');
-    
-    this.button.addEventListener('click', () => { this.events.emit('order:open') });
-    this.headerBasketButton.addEventListener('click', () => { this.events.emit('basket:open') });
 
+    this.button.addEventListener('click', () => { this.events.emit('order:open') });
     this.items = [];
   }
 
@@ -48,12 +43,20 @@ export class Basket implements IBasket {
     }
   }
 
-  renderHeaderBasketCounter(value: number) {
-    this.headerBasketCounter.textContent = String(value);
-  }
-  
   renderSumAllProducts(sumAll: number) {
     this.basketPrice.textContent = String(sumAll + ' синапсов');
+  }
+
+  renderBasketItems(items: IProductItem[]): void {
+    let i = 0;
+    const basketItems = items.map((item) => {
+      const basketItem = new BasketItem(this.cardBasketTemplate, this.events, {
+        onClick: () => this.events.emit('basket:basketItemRemove', item)
+      });
+      i = i + 1;
+      return basketItem.render(item, i);
+    });
+    this.items = basketItems;
   }
 
   render() {

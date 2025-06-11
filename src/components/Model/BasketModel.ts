@@ -1,3 +1,4 @@
+
 import { IProductItem } from "../../types";
 
 export interface IBasketModel {
@@ -6,11 +7,11 @@ export interface IBasketModel {
   getSumAllProducts: () => number;
   setSelectedСard(data: IProductItem): void;
   deleteCardToBasket(item: IProductItem): void;
-  clearBasketProducts(): void
+  clearBasketProducts(): void;
 }
 
 export class BasketModel implements IBasketModel {
-  protected _basketProducts: IProductItem[]; // список карточек товара в корзине
+  protected _basketProducts: IProductItem[];
 
   constructor() {
     this._basketProducts = [];
@@ -45,7 +46,6 @@ export class BasketModel implements IBasketModel {
     }
   }
 
-
   // удалить карточку товара из корзины
   deleteCardToBasket(item: IProductItem) {
     const index = this._basketProducts.indexOf(item);
@@ -55,6 +55,6 @@ export class BasketModel implements IBasketModel {
   }
 
   clearBasketProducts() {
-    this.basketProducts = []
+    this.basketProducts = [];
   }
 }

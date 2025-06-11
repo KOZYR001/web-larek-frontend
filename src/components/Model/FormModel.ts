@@ -1,18 +1,17 @@
+
 import { IEvents } from '../base/events';
-import { FormErrors } from '../../types/index'
+import { FormErrors } from '../../types/index';
 
 export interface IFormModel {
   payment: string;
   email: string;
   phone: string;
   address: string;
-  total: number;
-  items: string[];
-  setOrderAddress(field: string, value: string): void
+  setOrderAddress(field: string, value: string): void;
   validateOrder(): boolean;
-  setOrderData(field: string, value: string): void
+  setOrderData(field: string, value: string): void;
   validateContacts(): boolean;
-  getOrderLot(): object;
+  getOrderLot(items: string[], total: number): object;
 }
 
 export class FormModel implements IFormModel {
@@ -20,8 +19,6 @@ export class FormModel implements IFormModel {
   email: string;
   phone: string;
   address: string;
-  total: number;
-  items: string[];
   formErrors: FormErrors = {};
 
   constructor(protected events: IEvents) {
@@ -29,8 +26,6 @@ export class FormModel implements IFormModel {
     this.email = '';
     this.phone = '';
     this.address = '';
-    this.total = 0;
-    this.items = [];
   }
 
   // принимаем значение строки "address"
@@ -38,10 +33,7 @@ export class FormModel implements IFormModel {
     if (field === 'address') {
       this.address = value;
     }
-
-    if (this.validateOrder()) {
-      this.events.emit('order:ready', this.getOrderLot());
-    }
+    this.validateOrder();
   }
 
   // валидация данных строки "address"
@@ -50,11 +42,11 @@ export class FormModel implements IFormModel {
     const errors: typeof this.formErrors = {};
 
     if (!this.address) {
-      errors.address = 'Необходимо указать адрес'
+      errors.address = 'Необходимо указать адрес';
     } else if (!regexp.test(this.address)) {
-      errors.address = 'Укажите настоящий адрес'
+      errors.address = 'Укажите настоящий адрес';
     } else if (!this.payment) {
-      errors.payment = 'Выберите способ оплаты'
+      errors.payment = 'Выберите способ оплаты';
     }
 
     this.formErrors = errors;
@@ -69,10 +61,7 @@ export class FormModel implements IFormModel {
     } else if (field === 'phone') {
       this.phone = value;
     }
-
-    if (this.validateContacts()) {
-      this.events.emit('order:ready', this.getOrderLot());
-    }
+    this.validateContacts();
   }
 
   // Валидация данных строк "Email" и "Телефон"
@@ -82,9 +71,9 @@ export class FormModel implements IFormModel {
     const errors: typeof this.formErrors = {};
 
     if (!this.email) {
-      errors.email = 'Необходимо указать email'
+      errors.email = 'Необходимо указать email';
     } else if (!regexpEmail.test(this.email)) {
-      errors.email = 'Некорректный адрес электронной почты'
+      errors.email = 'Некорректный адрес электронной почты';
     }
 
     if (this.phone.startsWith('8')) {
@@ -92,9 +81,9 @@ export class FormModel implements IFormModel {
     }
 
     if (!this.phone) {
-      errors.phone = 'Необходимо указать телефон'
+      errors.phone = 'Необходимо указать телефон';
     } else if (!regexpPhone.test(this.phone)) {
-      errors.phone = 'Некорректный формат номера телефона'
+      errors.phone = 'Некорректный формат номера телефона';
     }
 
     this.formErrors = errors;
@@ -102,14 +91,14 @@ export class FormModel implements IFormModel {
     return Object.keys(errors).length === 0;
   }
 
-  getOrderLot() {
+  getOrderLot(items: string[], total: number) {
     return {
       payment: this.payment,
       email: this.email,
       phone: this.phone,
       address: this.address,
-      total: this.total,
-      items: this.items,
-    }
+      total,
+      items,
+    };
   }
 }
